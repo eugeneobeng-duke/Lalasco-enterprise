@@ -1,0 +1,240 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lalasco Enterprise - Spare Parts Shop</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    .product {
+      border: 1px solid #ccc;
+      padding: 15px;
+      margin: 10px;
+      width: 250px;
+      display: inline-block;
+      vertical-align: top;
+      text-align: center;
+    }
+
+    .product img {
+      width: 100%;
+      height: auto;
+    }
+
+    .product p {
+      margin: 5px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🚗 Lalasco Enterprise - Car Spare Parts</h1>
+
+  <!-- AUTHENTICATION SECTION -->
+  <h2>Sign Up</h2>
+  <form id="signup-form">
+    <input type="email" id="signup-email" placeholder="Email" required />
+    <input type="password" id="signup-password" placeholder="Password" required />
+    <button type="submit">Sign Up</button>
+  </form>
+
+  <h2>Log In</h2>
+  <form id="login-form">
+    <input type="email" id="login-email" placeholder="Email" required />
+    <input type="password" id="login-password" placeholder="Password" required />
+    <button type="submit">Log In</button>
+  </form>
+
+  <button id="logout-btn">Sign Out</button>
+  <p id="status">Not logged in.</p>
+
+  <hr />
+
+  <!-- PRODUCTS SECTION -->
+  <h2>Available Products</h2>
+  <div id="products">
+    <!-- Brake Pads -->
+    <div class="product">
+      <img src="https://www.glorybrakes.com/wp-content/uploads/2024/02/%E5%9B%BE%E7%89%87_Brake-pads-shoes-%E5%89%AF%E6%9C%AC-1-930x620.png" alt="Brake Pads">
+      <p><strong>Brake Pads</strong></p>
+      <p>Price: $40</p>
+      <button onclick="addToCart('Brake Pads', 40, 1)">Add to Cart</button>
+      <button onclick="addToWishlist('Brake Pads', 40)">Add to Wishlist</button>
+    </div>
+
+    <!-- Engine Oil -->
+    <div class="product">
+      <img src="https://5.imimg.com/data5/SELLER/Default/2021/12/ED/PE/LP/86270363/engine-oil-sae-40-petrol-500x500.png" alt="Engine Oil">
+      <p><strong>Engine Oil</strong></p>
+      <p>Price: $25</p>
+      <button onclick="addToCart('Engine Oil', 25, 1)">Add to Cart</button>
+      <button onclick="addToWishlist('Engine Oil', 25)">Add to Wishlist</button>
+    </div>
+
+    <!-- Timing Belt -->
+    <div class="product">
+      <img src="https://tse2.mm.bing.net/th/id/OIP.Lv1RA-kH2tZZ0TGRGUXDDQHaFd?cb=ucfimgc2&rs=1&pid=ImgDetMain&o=7&rm=3" alt="Timing Belt">
+      <p><strong>Timing Belt</strong></p>
+      <p>Price: $75</p>
+      <button onclick="addToCart('Timing Belt', 75, 1)">Add to Cart</button>
+      <button onclick="addToWishlist('Timing Belt', 75)">Add to Wishlist</button>
+    </div>
+
+    <!-- Steering Wheel -->
+    <div class="product">
+      <img src="https://th.bing.com/th/id/R.1ec0b1bc36f21e660fc39c82dff19bf3?rik=FSDB1hKFwoDFRQ&pid=ImgRaw&r=0" alt="Steering Wheel">
+      <p><strong>Steering Wheel</strong></p>
+      <p>Price: $120</p>
+      <button onclick="addToCart('Steering Wheel', 120, 1)">Add to Cart</button>
+      <button onclick="addToWishlist('Steering Wheel', 120)">Add to Wishlist</button>
+    </div>
+
+    <!-- Spark Plug -->
+    <div class="product">
+      <img src="https://m.media-amazon.com/images/I/81AK2fVXqSL.jpg" alt="Spark Plug">
+      <p><strong>Spark Plug</strong></p>
+      <p>Price: $15</p>
+      <button onclick="addToCart('Spark Plug', 15, 1)">Add to Cart</button>
+      <button onclick="addToWishlist('Spark Plug', 15)">Add to Wishlist</button>
+    </div>
+  </div>
+
+  <hr />
+
+  <!-- CART SECTION -->
+  <h2>🛒 My Cart</h2>
+  <ul id="cart-items"></ul>
+  <p id="cart-total">Total: $0</p>
+
+  <!-- WISHLIST SECTION -->
+  <h2>❤️ My Wishlist</h2>
+  <ul id="wishlist-items"></ul>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+    import { 
+      getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, 
+      signOut, onAuthStateChanged 
+    } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+    import { 
+      getFirestore, collection, getDocs, doc, setDoc, deleteDoc 
+    } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCtmALsr-lDXEnpbYsTR_Ou-KhETQUG58w",
+      authDomain: "lalasco-enterprise.firebaseapp.com",
+      projectId: "lalasco-enterprise",
+      storageBucket: "lalasco-enterprise.firebasestorage.app",
+      messagingSenderId: "238883789005",
+      appId: "1:238883789005:web:d63da52fc8ea91c97d7184",
+      measurementId: "G-FHP8JPL72E"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // AUTH HANDLERS
+    document.getElementById("signup-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const email = document.getElementById("signup-email").value;
+      const password = document.getElementById("signup-password").value;
+      createUserWithEmailAndPassword(auth, email, password)
+        .then(() => alert("Signed up!"))
+        .catch(error => alert(error.message));
+    });
+
+    document.getElementById("login-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const email = document.getElementById("login-email").value;
+      const password = document.getElementById("login-password").value;
+      signInWithEmailAndPassword(auth, email, password)
+        .then(() => alert("Logged in!"))
+        .catch(error => alert(error.message));
+    });
+
+    document.getElementById("logout-btn").addEventListener("click", () => {
+      signOut(auth)
+        .then(() => alert("Signed out!"))
+        .catch(error => alert(error.message));
+    });
+
+    window.addToCart = async function(name, price, qty) {
+      const user = auth.currentUser;
+      if (!user) return alert("Please log in first.");
+      const itemRef = doc(collection(db, "users", user.uid, "cart"));
+      await setDoc(itemRef, { name, price, qty });
+      loadCart(user.uid);
+    };
+
+    window.addToWishlist = async function(name, price) {
+      const user = auth.currentUser;
+      if (!user) return alert("Please log in first.");
+      const itemRef = doc(collection(db, "users", user.uid, "wishlist"));
+      await setDoc(itemRef, { name, price });
+      loadWishlist(user.uid);
+    };
+
+    async function loadCart(uid) {
+      const cartRef = collection(db, "users", uid, "cart");
+      const snapshot = await getDocs(cartRef);
+      const cartList = document.getElementById("cart-items");
+      cartList.innerHTML = "";
+      let total = 0;
+
+      snapshot.forEach(docSnap => {
+        const item = docSnap.data();
+        total += (item.price || 0) * (item.qty || 1);
+
+        const li = document.createElement("li");
+        li.innerHTML = `
+          ${item.name} - $${item.price} × ${item.qty}
+          <button onclick="removeItem('${uid}', 'cart', '${docSnap.id}')">Remove</button>
+        `;
+        cartList.appendChild(li);
+      });
+      document.getElementById("cart-total").textContent = "Total: $" + total;
+    }
+
+    async function loadWishlist(uid) {
+      const wishlistRef = collection(db, "users", uid, "wishlist");
+      const snapshot = await getDocs(wishlistRef);
+      const wishList = document.getElementById("wishlist-items");
+      wishList.innerHTML = "";
+
+      snapshot.forEach(docSnap => {
+        const item = docSnap.data();
+        const li = document.createElement("li");
+        li.innerHTML = `
+          ${item.name} - $${item.price}
+          <button onclick="removeItem('${uid}', 'wishlist', '${docSnap.id}')">Remove</button>
+        `;
+        wishList.appendChild(li);
+      });
+    }
+
+    window.removeItem = async function(uid, type, docId) {
+      await deleteDoc(doc(db, "users", uid, type, docId));
+      if (type === "cart") loadCart(uid);
+      else loadWishlist(uid);
+    };
+
+    onAuthStateChanged(auth, (user) => {
+      const status = document.getElementById("status");
+      if (user) {
+        status.textContent = `Logged in as ${user.email}`;
+        loadCart(user.uid);
+        loadWishlist(user.uid);
+      } else {
+        status.textContent = "Not logged in.";
+        document.getElementById("cart-items").innerHTML = "<li>Please login</li>";
+        document.getElementById("wishlist-items").innerHTML = "<li>Please login</li>";
+        document.getElementById("cart-total").textContent = "Total: $0";
+      }
+    });
+  </script>
+</body>
+</html>
